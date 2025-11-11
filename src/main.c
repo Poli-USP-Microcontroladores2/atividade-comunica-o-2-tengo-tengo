@@ -11,7 +11,7 @@
 /* Define UART device - using console UART */
 #define UART_DEVICE_NODE DT_CHOSEN(zephyr_console)
 
-#define MSG_SIZE 32
+#define MSG_SIZE 511
 
 /* Message queue to store up to 10 messages (aligned to 4-byte boundary) */
 K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4);

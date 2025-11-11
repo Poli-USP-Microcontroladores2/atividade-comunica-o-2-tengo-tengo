@@ -1,0 +1,7 @@
+shape: sequence_diagram
+
+User -> App: "Futebol\n"
+App -> UART_Driver: uart_poll_out()
+UART_Hardware -> UART_Driver: tx_done interrupt
+UART_Driver -> App: callback()
+App -> User: "Echo: Futebol"

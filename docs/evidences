@@ -1,0 +1,53 @@
+Diagrama para mensagens com 31 caracteres
+Starting UART Echo Bot on FRDM-KL25Z
+---- Sent utf8 encoded message: "A\r" ----
+
+Echo: A
+> 
+---- Sent utf8 encoded message: "Futebol\r" ----
+
+Echo: Futebol
+> 
+---- Sent utf8 encoded message: "Dimitri Garcia\r" ----
+
+Echo: Dimitri Garcia
+> 
+---- Sent utf8 encoded message: "\r" ----
+---- Sent utf8 encoded message: "\r" ----
+
+Echo: 
+> 
+---- Sent utf8 encoded message: "\r" ----
+---- Sent utf8 encoded message: "\r" ----
+
+Echo: 
+> 
+---- Sent utf8 encoded message: "ndvudsbvuibvuisfnvsidvnsubvsfibvsfu\r" ----
+
+Echo: ndvudsbvuibvuisfnvsidvnsubvsfib
+> 
+
+Diagrama para mensagens com 511 caracteres
+
+Starting UART Echo Bot on FRDM-KL25Z
+---- Sent utf8 encoded message: "a\r" ----
+
+Echo: a
+> 
+---- Sent utf8 encoded message: "Futebol\r" ----
+
+Echo: Futebol
+> 
+---- Sent utf8 encoded message: "Dimitri Garcia\r" ----
+
+Echo: Dimitri Garcia
+> 
+---- Sent utf8 encoded message: "\r" ----
+---- Sent utf8 encoded message: "\r" ----
+
+Echo: 
+> 
+---- Sent utf8 encoded message: "bndfisndvduivneafubvuienvcinscion\\sdvnudbuiabdsnvonsvuibaefuigebuvncskvausvbuafiubvvsc\r" ----
+
+Echo: bndfisndvduivneafubvuienvcinscion\sdvnudbuiabdsnvonsvuibaefuigebuvncskvausvbuafiubvvsc
+> 
