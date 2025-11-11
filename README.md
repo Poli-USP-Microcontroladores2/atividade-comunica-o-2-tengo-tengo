@@ -1,14 +1,6 @@
 # PSI-Microcontroladores2-Aula10
 Atividade: Comunicação UART
 
-# Projeto UART – Atividade em Duplas (Echo Bot + Async API)
-
-## 1. Informações Gerais
-
-* Dupla:
-
-  * Integrante 1:# PSI-Microcontroladores2-Aula10
-Atividade: Comunicação UART
 
 # Projeto UART – Atividade em Duplas (Echo Bot + Async API)
 
