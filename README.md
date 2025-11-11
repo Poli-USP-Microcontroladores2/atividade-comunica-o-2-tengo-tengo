@@ -60,7 +60,7 @@ O código usado para o Eco básico foi o mesmo do exemplo, apenas com algumas mu
 ### CT3 – Linha longa
 
 * Entrada: Uma sequencia de caracteres excessivamente longa, cerca de 100 caracteres
-  
+
 * Saída esperada: inicialmente se esperava uma saida identica a entrada, mas analisando o código, foi esperado um erro, com o programa lendo apenas 32 caracteres.
  
 * Saída: uma sequencia de caracteres de até 31 caracteres, isso ocorre por conta que, além da memória ser de 32 bytes(ou seja, 32 palavras), foram enviados 31 caracteres pois o último caractere sempre é \0, indicando fim da leitura.
@@ -113,7 +113,8 @@ Adicionar arquivos (diagrama completo e o código-base para geração do diagram
 
 ## 4.1 Descrição do Funcionamento
 
-Descrever o comportamento esperado de forma textual, especialmente com a alternância TX/RX.
+O código funciona enviando e recebendo pacotes. Para transmissão, quando há um pacote para ser enviado mas a UART está ocupasda, esse pacote é enviado para uma fila, com limite de 4 pacotes. Já para receptor não há fila, mas sim 2 buffers, que se alternam na recepção de informações a fim de evitar perda de informação. Toda essa parte é feita em uma função a parte. Já na main ocorre a criação de pacotes aleat´rios(entre 1 e 4 pacotes) e desabilita periódicamente o receptor, para demonstrar o controle da UART, impressão de mensagens de controle. Já a situação do envio e da recepção, além da impressão do pacote ocorre na função a parte.
+
 Link usado como referência:
 [https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html)
 
@@ -121,9 +122,21 @@ Link usado como referência:
 
 ### CT1 – Transmissão de pacotes a cada 5s
 
+  * Entrada:
+    * Saída esperada:
+      * Critério de Aceitação:
+
 ### CT2 – Recepção
 
+  * Entrada:
+    * Saída esperada:
+      * Critério de Aceitação:
+
 ### CT3 – Verificação de timing dos 5s
+
+  * Entrada:
+    * Saída esperada:
+      * Critério de Aceitação:
 
 (Adicionar mais casos se necessário.)
 
@@ -165,5 +178,5 @@ Adicionar arquivos (diagrama completo e o código-base para geração do diagram
 
 # 5. Conclusões da Dupla
 
-* O que deu certo:
+* O que deu certo: No Echo, tudo ocorreu bem, o principal erro foi sobre tamanho de mensagem, que fopi facilmente corrigido modificando a quantidade de memória disponivel para o echo.
 * O que foi mais desafiador:
