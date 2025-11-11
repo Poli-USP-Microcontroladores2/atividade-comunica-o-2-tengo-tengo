@@ -1,53 +1,29 @@
 Diagrama para mensagens com 31 caracteres
-Starting UART Echo Bot on FRDM-KL25Z
----- Sent utf8 encoded message: "A\r" ----
+[Loop 1 - Msg 1] Hello from KL25Z!
+[Loop 1 - Msg 2] Hello from KL25Z!
+[00:00:10.777,000] <inf> uart_int: === Loop 1 complete ===
 
-Echo: A
-> 
----- Sent utf8 encoded message: "Futebol\r" ----
+[00:00:15.783,000] <inf> uart_int: === Loop 2: Sending 1 messages ===
+[Loop 2 - Msg 0] Hello from KL25Z!
+[00:00:15.893,000] <inf> uart_int: === Loop 2 complete ===
 
-Echo: Futebol
-> 
----- Sent utf8 encoded message: "Dimitri Garcia\r" ----
+[00:00:20.899,000] <inf> uart_int: === Loop 3: Sending 3 messages ===
+[Loop 3 - Msg 0] Hello from KL25Z!
+[Loop 3 - Msg 1] Hello from KL25Z!
+[Loop 3 - Msg 2] Hello from KL25Z!
+[00:00:21.216,000] <inf> uart_int: === Loop 3 complete ===
 
-Echo: Dimitri Garcia
-> 
----- Sent utf8 encoded message: "\r" ----
----- Sent utf8 encoded message: "\r" ----
+---- Sent utf8 encoded message: "Garcia\r" ----
+Garcia[00:00:22.664,000] <inf> uart_int: Received: Garcia
+[00:00:26.222,000] <inf> uart_int: === Loop 4: Sending 1 messages ===
+[Loop 4 - Msg 0] Hello from KL25Z!
+[00:00:26.332,000] <inf> uart_int: === Loop 4 complete ===
 
-Echo: 
-> 
----- Sent utf8 encoded message: "\r" ----
----- Sent utf8 encoded message: "\r" ----
+[00:00:31.338,000] <inf> uart_int: === Loop 5: Sending 3 messages ===
+[Loop 5 - Msg 0] Hello from KL25Z!
+[Loop 5 - Msg 1] Hello from KL25Z!
+[Loop 5 - Msg 2] Hello from KL25Z!
+[00:00:31.655,000] <inf> uart_int: === Loop 5 complete ===
 
-Echo: 
-> 
----- Sent utf8 encoded message: "ndvudsbvuibvuisfnvsidvnsubvsfibvsfu\r" ----
-
-Echo: ndvudsbvuibvuisfnvsidvnsubvsfib
-> 
-
-Diagrama para mensagens com 511 caracteres
-
-Starting UART Echo Bot on FRDM-KL25Z
----- Sent utf8 encoded message: "a\r" ----
-
-Echo: a
-> 
----- Sent utf8 encoded message: "Futebol\r" ----
-
-Echo: Futebol
-> 
----- Sent utf8 encoded message: "Dimitri Garcia\r" ----
-
-Echo: Dimitri Garcia
-> 
----- Sent utf8 encoded message: "\r" ----
----- Sent utf8 encoded message: "\r" ----
-
-Echo: 
-> 
----- Sent utf8 encoded message: "bndfisndvduivneafubvuienvcinscion\\sdvnudbuiabdsnvonsvuibaefuigebuvncskvausvbuafiubvvsc\r" ----
-
-Echo: bndfisndvduivneafubvuienvcinscion\sdvnudbuiabdsnvonsvuibaefuigebuvncskvausvbuafiubvvsc
-> 
+---- Sent utf8 encoded message: "aDSA\r" ----
+aDSA[00:00:31.741,000] <inf> uart_int: Received: aDSA
