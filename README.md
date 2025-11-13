@@ -1,111 +1,151 @@
-# PSI-Microcontroladores2-Aula10
-Atividade: Comunicação UART
+
+# PSI-Microcontroladores2 - Aula 10
+**Atividade:** Comunicação UART
 
 # Projeto UART – Atividade em Duplas (Echo Bot + Async API)
 
 ## 1. Informações Gerais
 
-* Dupla:
+**Dupla:**
 
-  * Integrante 1:
-  * Integrante 2:
+* Integrante 1: Tiago Mamoru Hayashi – Número USP: 16835290  
+* Integrante 2: Dimitri de Moura Garcia – Número USP: 16862224
 
-* Objetivo: implementar, testar e documentar aplicações de comunicação UART baseadas nos exemplos oficiais “echo_bot” e “async_api”, utilizando desenvolvimento orientado a testes, diagramas de sequência D2 e registro de evidências.
+**Objetivo:** Implementar, testar e documentar aplicações de comunicação UART baseadas nos exemplos oficiais `echo_bot` e `async_api`, utilizando desenvolvimento orientado a testes (TDD), diagramas de sequência D2 e registro de evidências.
 
 ---
 
-# 2. Estrutura Esperada do Repositório
+## 2. Estrutura Esperada do Repositório
 
 ```
+
 README.md
 src/
 
 docs/
-  evidence/
-  sequence-diagrams/
+evidence/
+sequence-diagrams/
 
-```
+````
 
 ---
 
-# 3. Etapa 1 – Echo Bot (UART Polling/Interrupt)
+## 3. Etapa 1 – Echo Bot (UART Polling/Interrupt)
 
-## 3.1 Descrição do Funcionamento
+### 3.1 Descrição do Funcionamento
 
-Descrever aqui de forma textual o comportamento esperado baseado no exemplo oficial.
-Link usado como referência:
-[https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html)
+O código lê mensagens de até 32 bytes (valor ajustável) e envia para uma fila de leitura:
 
-## 3.2 Casos de Teste Planejados (TDD)
+```c
+K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4);
+````
 
-### CT1 – Eco básico
+Essa fila envia os dados da UART para a thread principal, podendo armazenar até 10 mensagens de 32 bytes. O programa inicia quando uma mensagem chega na UART e continua enquanto houver caracteres a serem lidos. Ele realiza a leitura sequencialmente, utilizando um buffer, e ao detectar `\n` ou `\r`, finaliza a leitura, adiciona `\0` ao final da mensagem e envia para a fila.
 
-* Entrada:
-* Saída esperada:
-* Critério de Aceitação:
+Uma função envia os dados de volta pela UART, caractere por caractere. A função `main` verifica se tudo está pronto, configura funções, envia uma mensagem de teste (boas-vindas) e entra em loop para processar a fila.
 
-### CT2 – Linha vazia
+**Referência:**
+[Echo Bot Zephyr Documentation](https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html)
 
-### CT3 – Linha longa
+### 3.2 Casos de Teste Planejados (TDD)
 
-(Adicionar mais casos se necessário.)
+#### CT1 – Eco Básico
 
-## 3.3 Implementação
+* **Entrada:** Usuário digita uma mensagem no terminal do VS Code (ex: "oi").
+* **Saída esperada:** Mesma mensagem digitada.
+* **Critério de Aceitação:** Mensagem exibida exatamente como digitada, incluindo letras maiúsculas, minúsculas e caracteres especiais.
 
-* Arquivo(s) modificados:
-* Justificativa das alterações:
+#### CT2 – Linha Vazia
 
-## 3.4 Evidências de Funcionamento
+* **Entrada:** Usuário envia um comando vazio.
+* **Saída esperada:** Mensagem vazia.
+* **Critério de Aceitação:** O sistema aceita comandos em branco sem falhas.
 
-Salvar evidências em `docs/evidence/echo_bot/`.
+#### CT3 – Linha Longa
 
-Exemplo de referência no README:
+* **Entrada:** Sequência de cerca de 100 caracteres.
+* **Saída esperada:** Apenas os primeiros 31 caracteres (o último byte é `\0`).
+* **Critério de Aceitação:** O Echo Bot imprime apenas o número de caracteres permitido pela memória configurada.
+
+> **Observação:** O tamanho máximo da mensagem depende da memória alocada, que tem limite definido pelo `proj.config`.
+
+### 3.3 Implementação
+
+* **Arquivos modificados:**
+
+  * `proj.config`: adição de log, ajuste da memória, ativação da UART e do console.
+  * `main.c`: modificação da define da UART (`zephyr_console`), substituição de `return 0` por `return -1`, ajustes nos `printk` e na interface do usuário.
+
+* **Justificativa:**
+  As alterações garantem funcionamento no VS Code, aumento da memória da UART, maior confiabilidade (`zephyr_console`) e melhor compreensão da interface de usuário.
+
+### 3.4 Evidências de Funcionamento
+
+Salvar em: `docs/evidence/echo_bot/`
+
+Exemplo:
 
 ```
 [Link para o log CT1](docs/evidence/echo_bot/ct1_output.txt)
 ```
 
-Adicionar aqui pequenos trechos ilustrativos:
+Trecho ilustrativo:
 
 ```
 Hello! I'm your echo bot. Tell me something and press enter:
 Echo: Hello World!
 ```
 
-## 3.5 Diagramas de Sequência D2
+### 3.5 Diagramas de Sequência D2
 
-Vide material de apoio: https://d2lang.com/tour/sequence-diagrams/
+Adicionar diagramas completos e código-base em: `docs/sequence-diagrams/`
 
-Adicionar arquivos (diagrama completo e o código-base para geração do diagrama) em `docs/sequence-diagrams/`.
+Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 
 ---
 
-# 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
+## 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
 
-## 4.1 Descrição do Funcionamento
+### 4.1 Descrição do Funcionamento
 
-Descrever o comportamento esperado de forma textual, especialmente com a alternância TX/RX.
-Link usado como referência:
-[https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html)
+O código envia e recebe pacotes de forma assíncrona:
 
-## 4.2 Casos de Teste Planejados (TDD)
+* **Transmissão:** Pacotes são enviados diretamente ou enfileirados (até 4 pacotes) se a UART estiver ocupada.
+* **Recepção:** Dois buffers alternados evitam perda de informação.
+* A `main` cria pacotes aleatórios (1 a 4), desativa periodicamente o receptor e imprime mensagens de controle.
 
-### CT1 – Transmissão de pacotes a cada 5s
+**Referência:**
+[Async API Zephyr Documentation](https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html)
 
-### CT2 – Recepção
+### 4.2 Casos de Teste Planejados (TDD)
 
-### CT3 – Verificação de timing dos 5s
+#### CT1 – Transmissão de pacotes a cada 5s
 
-(Adicionar mais casos se necessário.)
+ Ao iniciar o código, o computador espera cerca de 4ms para iniciar a UART. 5 segundos após a inicialização, Rx é habilitado, exibindo um log no serial monitor. Após isso, é inciado um loop na main, onde Rx é constantemente habilitado e desabilitado com tempo de 5 segundos entre cada troca. Quando habilitado, Recebe pacotes e quando desabilitado, pode enviar pacotes(depende se há algo na fila)
 
-## 4.3 Implementação
+#### CT2 – Recepção
 
-* Arquivos modificados:
-* Motivos/Justificativas:
+* Entrada: Usuário digita mensagem no monitor serial, que é lido pelo programa e enviado para o microcontrolador via UART pelo RX, podendo enviar corretamente mensagens de até 64 bytes(64 dígitos.)
+  
+* Saída esperada: Era esperado o retorno da mensagem digitada pelo usuário de duas formas: Hexadecimal e em ASCII. 
 
-## 4.4 Evidências de Funcionamento
+  
+* Critério de Aceitação: Apesar do código fazer a saída esperada muitas vezes, algumas vezes, mesmo com Rx habilitado, o código não retornava mensagem tanto em Hex, quanto em ASCII. Realizando uma análide no código, foi possível perceber a ocorrência de race condition entre o habilitar RX com a isr de controle, que barrava a impressão dos pacotes de informação.
+  
 
-Salvar em `docs/evidence/async_api/`.
+#### CT3 – Verificação de timing de 5s
+
+
+ Para verificar o timing entre o habilitar Rx e desabilitar Rx, foi usado log, que já estava presente no programa. Concluimos que: quando não há mensagens para serem transmitidas, o timing de 5 segundos funciona perfeitamente. Porém, quando há mensagens na fila, Ocorre um atraso de cerca de 1 segundo devido ao processamento e envio da mensagem.
+
+### 4.3 Implementação
+
+* **Arquivos modificados:**
+* **Justificativa das alterações:**
+
+### 4.4 Evidências de Funcionamento
+
+Salvar em: `docs/evidence/async_api/`
 
 Exemplo:
 
@@ -117,8 +157,6 @@ Packet: 1
 Packet: 2
 ```
 
-Ou:
-
 ```
 RX is now enabled
 UART callback: RX_RDY
@@ -126,15 +164,26 @@ Data (HEX): 48 65 6C 6C 6F
 Data (ASCII): Hello
 ```
 
-## 4.5 Diagramas de Sequência D2
+### 4.5 Diagramas de Sequência D2
 
-Vide material de referência: https://d2lang.com/tour/sequence-diagrams/
+Adicionar diagramas completos e código-base em: `docs/sequence-diagrams/`
 
-Adicionar arquivos (diagrama completo e o código-base para geração do diagrama) em `docs/sequence-diagrams/`.
+Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 
 ---
 
-# 5. Conclusões da Dupla
+## 5. Conclusões da Dupla
 
-* O que deu certo:
-* O que foi mais desafiador:
+* **O que deu certo:** No Echo Bot, tudo funcionou bem. O principal problema foi o tamanho da mensagem, facilmente resolvido ajustando a memória disponível.
+* **Desafios enfrentados:**
+
+```
+
+```
+
+```
+
+---
+
+Quer que eu faça isso?
+```
