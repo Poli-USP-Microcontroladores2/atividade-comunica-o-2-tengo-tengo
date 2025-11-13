@@ -121,11 +121,9 @@ O código envia e recebe pacotes de forma assíncrona:
 
 #### CT1 – Transmissão de pacotes a cada 5s
 
-na entrada, usuario enviava mensagem no serial monitor, e enviava para o programa, que por sua vez enviava para o microcontrolador via uart.
+ Ao iniciar o código, o computador espera cerca de 4ms para iniciar a UART. 5 segundos após a inicialização, Rx é habilitado, exibindo um log no serial monitor. Após isso, é inciado um loop na main, onde Rx é constantemente habilitado e desabilitado com tempo de 5 segundos entre cada troca. Quando habilitado, Recebe pacotes e quando desabilitado, pode enviar pacotes(depende se há algo na fila)
 
-na saida, era esperado o retorno de duas formas: um data(hezadecimal) e um data(ASCII).
-em hex, viria 2caracteres relacionados a cada caractere da string, o ASCII enviaria a string normalmente. Exemplo:  Data (HEX): 48 65 6C 6C 6F
-Data (ASCII): Hello.
+#### CT2 – Recepção
 
 * Entrada: Usuário digita mensagem no monitor serial, que é lido pelo programa e enviado para o microcontrolador via UART pelo RX, podendo enviar corretamente mensagens de até 64 bytes(64 dígitos.)
   
@@ -133,21 +131,12 @@ Data (ASCII): Hello.
 
   
 * Critério de Aceitação: Apesar do código fazer a saída esperada muitas vezes, algumas vezes, mesmo com Rx habilitado, o código não retornava mensagem tanto em Hex, quanto em ASCII. Realizando uma análide no código, foi possível perceber a ocorrência de race condition entre o habilitar RX com a isr de controle, que barrava a impressão dos pacotes de informação.
-
-#### CT2 – Recepção
-
-* Entrada:
-* Saída esperada:
-* Critério de Aceitação:
   
 
 #### CT3 – Verificação de timing de 5s
 
-* Entrada:
-* Saída esperada:
-* Critério de Aceitação:
 
-> Adicionar mais casos se necessário.
+ Para verificar o timing entre o habilitar Rx e desabilitar Rx, foi usado log, que já estava presente no programa. Concluimos que: quando não há mensagens para serem transmitidas, o timing de 5 segundos funciona perfeitamente. Porém, quando há mensagens na fila, Ocorre um atraso de cerca de 1 segundo devido ao processamento e envio da mensagem.
 
 ### 4.3 Implementação
 
