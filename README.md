@@ -121,15 +121,25 @@ O código envia e recebe pacotes de forma assíncrona:
 
 #### CT1 – Transmissão de pacotes a cada 5s
 
-* Entrada:
-* Saída esperada:
-* Critério de Aceitação:
+na entrada, usuario enviava mensagem no serial monitor, e enviava para o programa, que por sua vez enviava para o microcontrolador via uart.
+
+na saida, era esperado o retorno de duas formas: um data(hezadecimal) e um data(ASCII).
+em hex, viria 2caracteres relacionados a cada caractere da string, o ASCII enviaria a string normalmente. Exemplo:  Data (HEX): 48 65 6C 6C 6F
+Data (ASCII): Hello.
+
+* Entrada: Usuário digita mensagem no monitor serial, que é lido pelo programa e enviado para o microcontrolador via UART pelo RX, podendo enviar corretamente mensagens de até 64 bytes(64 dígitos.)
+  
+* Saída esperada: Era esperado o retorno da mensagem digitada pelo usuário de duas formas: Hexadecimal e em ASCII. 
+
+  
+* Critério de Aceitação: Apesar do código fazer a saída esperada muitas vezes, algumas vezes, mesmo com Rx habilitado, o código não retornava mensagem tanto em Hex, quanto em ASCII. Realizando uma análide no código, foi possível perceber a ocorrência de race condition entre o habilitar RX com a isr de controle, que barrava a impressão dos pacotes de informação.
 
 #### CT2 – Recepção
 
 * Entrada:
 * Saída esperada:
 * Critério de Aceitação:
+  
 
 #### CT3 – Verificação de timing de 5s
 
