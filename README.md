@@ -179,14 +179,12 @@ Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 * **Desafios enfrentados:**
 
 ```
-(aqui você pode completar com os desafios específicos encontrados durante a implementação)
+
 ```
 
 ```
 
 ---
-
-Se você quiser, posso também **criar uma versão ainda mais enxuta e visualmente clara**, com destaques em caixas, listas mais compactas e trechos de código destacados, pronta para entregar como README final de projeto.  
 
 Quer que eu faça isso?
 ```
