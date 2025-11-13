@@ -366,35 +366,33 @@ int main(void)
 		
 		printk("\n");
 
-		/* Toggle RX a cada 2 loops (10 segundos) para dar tempo de testar */
-		if (loop_counter % 2 == 0) {
-			if (rx_enabled) {
-				uart_irq_rx_disable(uart_dev);
-				LOG_INF("RX is now disabled\n");
-				rx_enabled = false;
-			} else {
-				/* Limpar buffers antes de habilitar */
-				k_spinlock_key_t key = k_spin_lock(&rx_lock);
-				rx_write_idx = 0;
-				rx_pos = 0;
-				rx_ready_packet.ready = false;
-				k_spin_unlock(&rx_lock, key);
-				
-				/* Flush hardware FIFO para remover lixo */
-				uint8_t dummy;
-				while (uart_fifo_read(uart_dev, &dummy, 1) > 0) {
-					/* Descartar bytes antigos */
-				}
-				
-				/* Habilitar RX IRQ */
-				uart_irq_rx_enable(uart_dev);
-				
-				/* Pequeno delay para estabilizar */
-				k_sleep(K_MSEC(50));
-				
-				LOG_INF("RX is now enabled (ready to receive)\n");
-				rx_enabled = true;
+		/* Toggle RX a cada loop (5 segundos) */
+		if (rx_enabled) {
+			uart_irq_rx_disable(uart_dev);
+			LOG_INF("RX is now disabled\n");
+			rx_enabled = false;
+		} else {
+			/* Limpar buffers antes de habilitar */
+			k_spinlock_key_t key = k_spin_lock(&rx_lock);
+			rx_write_idx = 0;
+			rx_pos = 0;
+			rx_ready_packet.ready = false;
+			k_spin_unlock(&rx_lock, key);
+			
+			/* Flush hardware FIFO para remover lixo */
+			uint8_t dummy;
+			while (uart_fifo_read(uart_dev, &dummy, 1) > 0) {
+				/* Descartar bytes antigos */
 			}
+			
+			/* Habilitar RX IRQ */
+			uart_irq_rx_enable(uart_dev);
+			
+			/* Pequeno delay para estabilizar */
+			k_sleep(K_MSEC(50));
+			
+			LOG_INF("RX is now enabled (ready to receive)\n");
+			rx_enabled = true;
 		}
 
 		loop_counter++;

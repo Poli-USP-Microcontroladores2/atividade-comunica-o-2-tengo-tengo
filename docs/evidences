@@ -1,19 +1,36 @@
-[00:00:05.028,000] <inf> uart_int: Loop 0: Sending 3 packets
-Loop 0: Packet: 0
-Loop 0: Packet: 1
-Loop 0: Packet: 2
-[00:00:05.185,000] <inf> uart_int: RX enabled
----- Sent utf8 encoded message: "teste\r" ----
-[00:00:08.269,000] <inf> uart_int: RX Packet
-                                   74 65 73 74 65                                   |teste            
-[00:00:10.189,000] <inf> uart_int: Loop 1: Sending 3 packets
-Loop 1: Packet: 0
-Loop 1: Packet: 1
-Loop 1: Packet: 2
+[00:00:00.004,000] <inf> uart_int: UART Interrupt-Driven - FRDM-KL25Z
+[00:00:00.010,000] <inf> uart_int: ====================================
+[00:00:00.017,000] <inf> uart_int: UART initialized successfully!
 
-[00:00:10.346,000] <inf> uart_int: RX disabled
+[00:00:05.024,000] <inf> uart_int: Loop 0:
+[00:00:05.029,000] <inf> uart_int: Sending 4 packets (packet size: 19)
+Packet: 0
+[00:00:05.036,000] <inf> uart_int: Packet: 0
+Packet: 1
+[00:00:05.141,000] <inf> uart_int: Packet: 1
+Packet: 2
+[00:00:05.247,000] <inf> uart_int: Packet: 2
+Packet: 3
+[00:00:05.353,000] <inf> uart_int: Packet: 3
+
+[00:00:05.508,000] <inf> uart_int: RX is now enabled (ready to receive)
+
 ---- Sent utf8 encoded message: "Dimitri\r" ----
-[00:00:15.351,000] <inf> uart_int: Loop 2: Sending 3 packets
-Loop 2: Packet: 0
-Loop 2: Packet: 1
-Loop 2: Packet: 2
+[00:00:08.213,000] <inf> uart_int: UART callback: RX_RDY (ISR calls: 8)
+Data (HEX): 44 69 6D 69 74 72 69 
+Data (ASCII): Dimitri
+
+[00:00:10.516,000] <inf> uart_int: Loop 1:
+[00:00:10.520,000] <inf> uart_int: Sending 1 packets (packet size: 19)
+Packet: 0
+00:10.527,000] <inf> uart_int: Packet: 0
+
+[00:00:10.632,000] <inf> uart_int: RX is now disabled
+
+---- Sent utf8 encoded message: "dimitri\r" ----
+[00:00:15.638,000] <inf> uart_int: Loop 2:
+[00:00:15.643,000] <inf> uart_int: Sending 2 packets (packet size: 19)
+Packet: 0
+[00:00:15.650,000] <inf> uart_int: Packet: 0
+Packet: 1
+[00:00:15.755,000] <inf> uart_int: Packet: 1
