@@ -1,153 +1,152 @@
-# PSI-Microcontroladores2-Aula10
-Atividade: Comunicação UART
 
+# PSI-Microcontroladores2 - Aula 10
+**Atividade:** Comunicação UART
 
 # Projeto UART – Atividade em Duplas (Echo Bot + Async API)
 
 ## 1. Informações Gerais
 
-* Dupla:
+**Dupla:**
 
-  * Integrante 1: Tiago Mamoru Hayashi  número USP: 16835290
-  * Integrante 2: Dimitri de Moura Garcia número USP:16862224
+* Integrante 1: Tiago Mamoru Hayashi – Número USP: 16835290  
+* Integrante 2: Dimitri de Moura Garcia – Número USP: 16862224
 
-* Objetivo: implementar, testar e documentar aplicações de comunicação UART baseadas nos exemplos oficiais “echo_bot” e “async_api”, utilizando desenvolvimento orientado a testes, diagramas de sequência D2 e registro de evidências.
+**Objetivo:** Implementar, testar e documentar aplicações de comunicação UART baseadas nos exemplos oficiais `echo_bot` e `async_api`, utilizando desenvolvimento orientado a testes (TDD), diagramas de sequência D2 e registro de evidências.
 
 ---
 
-# 2. Estrutura Esperada do Repositório
+## 2. Estrutura Esperada do Repositório
 
 ```
+
 README.md
 src/
 
 docs/
-  evidence/
-  sequence-diagrams/
+evidence/
+sequence-diagrams/
 
-```
+````
 
 ---
 
-# 3. Etapa 1 – Echo Bot (UART Polling/Interrupt)
+## 3. Etapa 1 – Echo Bot (UART Polling/Interrupt)
 
-## 3.1 Descrição do Funcionamento
+### 3.1 Descrição do Funcionamento
 
- De acordo com o código, ele consegue ler mensagens de até 32 bits(valor esse que pode ser alterado) e envia para uma fila de leitura: K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4); 
- Essa fila manda os dados da uart para a thread principal e que cabem até 10 mensagens de 32 bits. O programa inicia de fato sempre que uma mensagem chega na uart e continua enquanto tiver caracteres a serem lidos. Ele realiza a leitura sequencialmente, usando buffer e sempre que lê \n ou \r, entende que a linha cabou, finalizando a leitura e enviando o que foi lido para a fila, com \0 no final da mensagem.
- Então, uma outra função envia pela uart o que foi digitado, enviando uma mensagem por vez, caracterte por caractere. Já a função main verifica se está tudo pronto pra rodar o código, configura as funções, envia uma mensagem de teste(boas vindas) e por fim entra em loop até que haja algo na fila para ser impresso.
+O código lê mensagens de até 32 bytes (valor ajustável) e envia para uma fila de leitura:
 
-Link usado como referência:
+```c
+K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4);
+````
 
-[https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html)
+Essa fila envia os dados da UART para a thread principal, podendo armazenar até 10 mensagens de 32 bytes. O programa inicia quando uma mensagem chega na UART e continua enquanto houver caracteres a serem lidos. Ele realiza a leitura sequencialmente, utilizando um buffer, e ao detectar `\n` ou `\r`, finaliza a leitura, adiciona `\0` ao final da mensagem e envia para a fila.
 
+Uma função envia os dados de volta pela UART, caractere por caractere. A função `main` verifica se tudo está pronto, configura funções, envia uma mensagem de teste (boas-vindas) e entra em loop para processar a fila.
 
-## 3.2 Casos de Teste Planejados (TDD)
+**Referência:**
+[Echo Bot Zephyr Documentation](https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html)
 
-### CT1 – Eco básico
+### 3.2 Casos de Teste Planejados (TDD)
 
-O código usado para o Eco básico foi o mesmo do exemplo, apenas com algumas mudanças para funcionar pra versão do platformio.
+#### CT1 – Eco Básico
 
-* Entrada: Usuário do echo bot digita uma mensagem no terminal do vs code. No teste utilizamos a mensagem "oi".
-* Saída esperada: A mesma digitada pelo usuário
-* Critério de Aceitação: a exata mesma palavra digitada no terminal, com letras maiúsculas, caracteres especiais e sem erros ou falta de caractertes. Para confirmar isso, realizamos diversos testes,  digitando vários caracteres especiais(^, ~, <, *, &, M, O, a, etc.), todos digitados perfeitamente. Vale ressaltar que todas eram mensagens curtas( no máximo 7 letras).
+* **Entrada:** Usuário digita uma mensagem no terminal do VS Code (ex: "oi").
+* **Saída esperada:** Mesma mensagem digitada.
+* **Critério de Aceitação:** Mensagem exibida exatamente como digitada, incluindo letras maiúsculas, minúsculas e caracteres especiais.
 
-### CT2 – Linha vazia
-* Entrada: o usuário do echo bot envioa um comando vazio, sem espaços ou caracteres.
-* Saída esperada: uma mensagem vazia.
-* Critério de Aceitação: a exata mesma palavra digitada no terminal, com letras maiúsculas, caracteres especiais e sem erros ou falta de caractertes. Para confirmar isso, enviamos 5 vezes comandos em branco para leitura, e todos funcionaram perfeitamente.
-  
-### CT3 – Linha longa
+#### CT2 – Linha Vazia
 
-* Entrada: Uma sequencia de caracteres excessivamente longa, cerca de 100 caracteres
+* **Entrada:** Usuário envia um comando vazio.
+* **Saída esperada:** Mensagem vazia.
+* **Critério de Aceitação:** O sistema aceita comandos em branco sem falhas.
 
-* Saída esperada: inicialmente se esperava uma saida identica a entrada, mas analisando o código, foi esperado um erro, com o programa lendo apenas 32 caracteres.
- 
-* Saída: uma sequencia de caracteres de até 31 caracteres, isso ocorre por conta que, além da memória ser de 32 bytes(ou seja, 32 palavras), foram enviados 31 caracteres pois o último caractere sempre é \0, indicando fim da leitura.
-  
-* Critério de Aceitação: para validarmos que o echo bot imprime um número de caracteres igual a memória alocada a ele, realizamos diversos testes com longas sequencias de caracteres, tamém modificando a quantidade de memória dedicada a ele, validando o fato de que ele imprime no máximo a quantidade de memória associada a ele -1.
+#### CT3 – Linha Longa
 
-  * Pontos importantes: nesse teste é possível visualizar que o tamanho máximo de uma palavra é determinado pelo quanto de memória que é didicado a ela, que por sua vez também tem um limite, definido pelo proj.config, que tem como limite a RAM do microcontrolador.
+* **Entrada:** Sequência de cerca de 100 caracteres.
+* **Saída esperada:** Apenas os primeiros 31 caracteres (o último byte é `\0`).
+* **Critério de Aceitação:** O Echo Bot imprime apenas o número de caracteres permitido pela memória configurada.
 
-## 3.3 Implementação
+> **Observação:** O tamanho máximo da mensagem depende da memória alocada, que tem limite definido pelo `proj.config`.
 
-* Arquivo(s) modificados:
-  
-proj.config: adição de Log, quantidade de memória, ativação da UART e do console.
+### 3.3 Implementação
 
-main: modificação na define da UART( mudamos para zephyr_console), na linha 80 substituimos return 0 para return -1, pois é mais usual para indicar erro. E por fim, atualizamos alguns printk e a interface entre o usuário e o echo.
+* **Arquivos modificados:**
 
- 
-* Justificativa das alterações:
-  
-  funcionamento do código no nosso ambiente do vs code, além da adição de mais memória para UART. Alguns comandos também(como zephyr_console) foram usados por serem mais cinfiáveis do que seus anteriores. A modificação da interface e dos printk serve para proporcionar uma melhor compreensão.
+  * `proj.config`: adição de log, ajuste da memória, ativação da UART e do console.
+  * `main.c`: modificação da define da UART (`zephyr_console`), substituição de `return 0` por `return -1`, ajustes nos `printk` e na interface do usuário.
 
+* **Justificativa:**
+  As alterações garantem funcionamento no VS Code, aumento da memória da UART, maior confiabilidade (`zephyr_console`) e melhor compreensão da interface de usuário.
 
+### 3.4 Evidências de Funcionamento
 
-## 3.4 Evidências de Funcionamento
+Salvar em: `docs/evidence/echo_bot/`
 
-Salvar evidências em `docs/evidence/echo_bot/`.
-
-Exemplo de referência no README:
+Exemplo:
 
 ```
 [Link para o log CT1](docs/evidence/echo_bot/ct1_output.txt)
 ```
 
-Adicionar aqui pequenos trechos ilustrativos:
+Trecho ilustrativo:
 
 ```
 Hello! I'm your echo bot. Tell me something and press enter:
 Echo: Hello World!
 ```
 
-## 3.5 Diagramas de Sequência D2
+### 3.5 Diagramas de Sequência D2
 
-Vide material de apoio: https://d2lang.com/tour/sequence-diagrams/
+Adicionar diagramas completos e código-base em: `docs/sequence-diagrams/`
 
-Adicionar arquivos (diagrama completo e o código-base para geração do diagrama) em `docs/sequence-diagrams/`.
+Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 
 ---
 
-# 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
+## 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
 
-## 4.1 Descrição do Funcionamento
+### 4.1 Descrição do Funcionamento
 
-O código funciona enviando e recebendo pacotes. Para transmissão, quando há um pacote para ser enviado mas a UART está ocupasda, esse pacote é enviado para uma fila, com limite de 4 pacotes. Já para receptor não há fila, mas sim 2 buffers, que se alternam na recepção de informações a fim de evitar perda de informação. Toda essa parte é feita em uma função a parte. Já na main ocorre a criação de pacotes aleat´rios(entre 1 e 4 pacotes) e desabilita periódicamente o receptor, para demonstrar o controle da UART, impressão de mensagens de controle. Já a situação do envio e da recepção, além da impressão do pacote ocorre na função a parte.
+O código envia e recebe pacotes de forma assíncrona:
 
-Link usado como referência:
-[https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html)
+* **Transmissão:** Pacotes são enviados diretamente ou enfileirados (até 4 pacotes) se a UART estiver ocupada.
+* **Recepção:** Dois buffers alternados evitam perda de informação.
+* A `main` cria pacotes aleatórios (1 a 4), desativa periodicamente o receptor e imprime mensagens de controle.
 
-## 4.2 Casos de Teste Planejados (TDD)
+**Referência:**
+[Async API Zephyr Documentation](https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html)
 
-### CT1 – Transmissão de pacotes a cada 5s
+### 4.2 Casos de Teste Planejados (TDD)
 
-  * Entrada:
-    * Saída esperada:
-      * Critério de Aceitação:
+#### CT1 – Transmissão de pacotes a cada 5s
 
-### CT2 – Recepção
+* Entrada:
+* Saída esperada:
+* Critério de Aceitação:
 
-  * Entrada:
-    * Saída esperada:
-      * Critério de Aceitação:
+#### CT2 – Recepção
 
-### CT3 – Verificação de timing dos 5s
+* Entrada:
+* Saída esperada:
+* Critério de Aceitação:
 
-  * Entrada:
-    * Saída esperada:
-      * Critério de Aceitação:
+#### CT3 – Verificação de timing de 5s
 
-(Adicionar mais casos se necessário.)
+* Entrada:
+* Saída esperada:
+* Critério de Aceitação:
 
-## 4.3 Implementação
+> Adicionar mais casos se necessário.
 
-* Arquivos modificados:
-* Motivos/Justificativas:
+### 4.3 Implementação
 
-## 4.4 Evidências de Funcionamento
+* **Arquivos modificados:**
+* **Justificativa das alterações:**
 
-Salvar em `docs/evidence/async_api/`.
+### 4.4 Evidências de Funcionamento
+
+Salvar em: `docs/evidence/async_api/`
 
 Exemplo:
 
@@ -159,8 +158,6 @@ Packet: 1
 Packet: 2
 ```
 
-Ou:
-
 ```
 RX is now enabled
 UART callback: RX_RDY
@@ -168,15 +165,28 @@ Data (HEX): 48 65 6C 6C 6F
 Data (ASCII): Hello
 ```
 
-## 4.5 Diagramas de Sequência D2
+### 4.5 Diagramas de Sequência D2
 
-Vide material de referência: https://d2lang.com/tour/sequence-diagrams/
+Adicionar diagramas completos e código-base em: `docs/sequence-diagrams/`
 
-Adicionar arquivos (diagrama completo e o código-base para geração do diagrama) em `docs/sequence-diagrams/`.
+Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 
 ---
 
-# 5. Conclusões da Dupla
+## 5. Conclusões da Dupla
 
-* O que deu certo: No Echo, tudo ocorreu bem, o principal erro foi sobre tamanho de mensagem, que fopi facilmente corrigido modificando a quantidade de memória disponivel para o echo.
-* O que foi mais desafiador:
+* **O que deu certo:** No Echo Bot, tudo funcionou bem. O principal problema foi o tamanho da mensagem, facilmente resolvido ajustando a memória disponível.
+* **Desafios enfrentados:**
+
+```
+(aqui você pode completar com os desafios específicos encontrados durante a implementação)
+```
+
+```
+
+---
+
+Se você quiser, posso também **criar uma versão ainda mais enxuta e visualmente clara**, com destaques em caixas, listas mais compactas e trechos de código destacados, pronta para entregar como README final de projeto.  
+
+Quer que eu faça isso?
+```
