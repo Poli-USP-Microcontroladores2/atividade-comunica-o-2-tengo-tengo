@@ -1,11 +1,11 @@
 /*
- * UART Interrupt-Driven Completo para FRDM-KL25Z
+ * UART Interrupt-Driven Melhorado para FRDM-KL25Z
  * 
- * Funcionalidades:
- * - Fila TX com limite de 4 pacotes
- * - Double buffer RX alternado
- * - Toggle periódico do RX (enable/disable)
- * - Processamento em callbacks/ISR
+ * Melhorias:
+ * - RX buffer thread-safe com processamento fora da ISR
+ * - Logs formatados e organizados
+ * - Toggle RX mais estável
+ * - Sincronização adequada entre ISR e main thread
  */
 
 #include <zephyr/kernel.h>
@@ -14,6 +14,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/random/random.h>
 #include <string.h>
+#include <ctype.h>
 
 LOG_MODULE_REGISTER(uart_int, LOG_LEVEL_INF);
 
@@ -32,6 +33,13 @@ struct tx_packet {
 	size_t len;
 };
 
+/* Estrutura de pacote RX recebido */
+struct rx_packet {
+	uint8_t data[RX_BUFFER_SIZE];
+	size_t len;
+	bool ready;
+};
+
 /* Fila TX */
 static struct tx_packet tx_queue[TX_QUEUE_SIZE];
 static volatile uint8_t tx_queue_head = 0;
@@ -44,10 +52,14 @@ static struct tx_packet tx_current;
 static volatile size_t tx_pos = 0;
 static volatile bool tx_busy = false;
 
-/* Double buffer RX */
+/* Double buffer RX - processamento assíncrono */
 static uint8_t rx_buffer[2][RX_BUFFER_SIZE];
-static volatile uint8_t rx_buffer_idx = 0;
+static volatile uint8_t rx_write_idx = 0;  // Buffer sendo escrito pela ISR
 static volatile size_t rx_pos = 0;
+static struct rx_packet rx_ready_packet;
+static struct k_spinlock rx_lock;
+static struct k_sem rx_data_sem;
+static volatile uint32_t rx_isr_count = 0;  // Debug: contador de chamadas ISR
 
 static const struct device *const uart_dev = DEVICE_DT_GET(UART_DEVICE_NODE);
 
@@ -122,12 +134,10 @@ static void uart_isr_callback(const struct device *dev, void *user_data)
 			
 			if (tx_pos >= tx_current.len) {
 				/* Pacote atual completo */
-				LOG_DBG("TX complete: %d bytes", tx_current.len);
 				tx_busy = false;
 				
 				/* Tentar pegar próximo pacote da fila */
 				if (tx_queue_pop(&tx_current)) {
-					LOG_DBG("Dequeued packet from TX queue");
 					tx_pos = 0;
 					tx_busy = true;
 				} else {
@@ -144,36 +154,108 @@ static void uart_isr_callback(const struct device *dev, void *user_data)
 	/* ===== PROCESSAR RX ===== */
 	if (uart_irq_rx_ready(dev)) {
 		uint8_t byte;
-		uint8_t current_buf = rx_buffer_idx;
+		k_spinlock_key_t key;
+		
+		rx_isr_count++;  // Debug: incrementar contador
 		
 		while (uart_fifo_read(dev, &byte, 1) > 0) {
-			/* Guardar no buffer atual */
+			key = k_spin_lock(&rx_lock);
+			
+			/* Guardar no buffer de escrita atual */
 			if (rx_pos < RX_BUFFER_SIZE - 1) {
-				rx_buffer[current_buf][rx_pos++] = byte;
+				rx_buffer[rx_write_idx][rx_pos++] = byte;
 				
-				/* Se recebeu enter, processar */
-				if (byte == '\r' || byte == '\n') {
-					rx_buffer[current_buf][rx_pos] = '\0';
-					
-					if (rx_pos > 1) {
-						/* Imprimir pacote recebido */
-						LOG_HEXDUMP_INF(rx_buffer[current_buf], 
-								rx_pos - 1, "RX Packet");
+				/* Se recebeu enter ou chegou no limite, processar */
+				if (byte == '\r' || byte == '\n' || rx_pos >= RX_BUFFER_SIZE - 1) {
+					if (rx_pos > 1 || (rx_pos == 1 && byte != '\r' && byte != '\n')) {
+						/* Copiar para o pacote pronto se ainda não tem um pendente */
+						if (!rx_ready_packet.ready) {
+							size_t copy_len = rx_pos;
+							
+							/* Remover \r\n do final se presente */
+							if (copy_len > 0 && 
+							    (rx_buffer[rx_write_idx][copy_len-1] == '\r' || 
+							     rx_buffer[rx_write_idx][copy_len-1] == '\n')) {
+								copy_len--;
+							}
+							
+							if (copy_len > 0) {
+								memcpy(rx_ready_packet.data, 
+								       rx_buffer[rx_write_idx], 
+								       copy_len);
+								rx_ready_packet.len = copy_len;
+								rx_ready_packet.ready = true;
+								
+								/* Sinalizar thread de processamento */
+								k_sem_give(&rx_data_sem);
+							}
+						}
 					}
 					
-					/* Trocar buffer */
-					rx_buffer_idx = rx_buffer_idx ? 0 : 1;
+					/* Trocar buffer e resetar posição */
+					rx_write_idx = rx_write_idx ? 0 : 1;
 					rx_pos = 0;
 				}
 			} else {
-				/* Buffer cheio - trocar e resetar */
-				LOG_WRN("RX buffer full - switching");
-				rx_buffer_idx = rx_buffer_idx ? 0 : 1;
+				/* Buffer cheio - resetar */
+				rx_write_idx = rx_write_idx ? 0 : 1;
 				rx_pos = 0;
 			}
+			
+			k_spin_unlock(&rx_lock, key);
 		}
 	}
 }
+
+/* ===== THREAD DE PROCESSAMENTO RX ===== */
+
+static void rx_processing_thread(void *p1, void *p2, void *p3)
+{
+	ARG_UNUSED(p1);
+	ARG_UNUSED(p2);
+	ARG_UNUSED(p3);
+	
+	struct rx_packet local_packet;
+	
+	while (1) {
+		/* Aguardar dados */
+		k_sem_take(&rx_data_sem, K_FOREVER);
+		
+		/* Copiar pacote pronto */
+		k_spinlock_key_t key = k_spin_lock(&rx_lock);
+		if (rx_ready_packet.ready) {
+			memcpy(&local_packet, &rx_ready_packet, sizeof(struct rx_packet));
+			rx_ready_packet.ready = false;
+		} else {
+			k_spin_unlock(&rx_lock, key);
+			continue;
+		}
+		k_spin_unlock(&rx_lock, key);
+		
+		/* Processar dados fora da ISR */
+		LOG_INF("UART callback: RX_RDY (ISR calls: %u)", rx_isr_count);
+		
+		/* Print HEX */
+		printk("Data (HEX): ");
+		for (size_t i = 0; i < local_packet.len; i++) {
+			printk("%02X ", local_packet.data[i]);
+		}
+		printk("\n");
+		
+		/* Print ASCII */
+		printk("Data (ASCII): ");
+		for (size_t i = 0; i < local_packet.len; i++) {
+			if (isprint(local_packet.data[i])) {
+				printk("%c", local_packet.data[i]);
+			} else {
+				printk(".");
+			}
+		}
+		printk("\n\n");
+	}
+}
+
+K_THREAD_DEFINE(rx_thread, 1024, rx_processing_thread, NULL, NULL, NULL, 5, 0, 0);
 
 /* ===== FUNÇÃO PARA ENVIAR PACOTE ===== */
 
@@ -204,7 +286,6 @@ static int uart_send_packet(const uint8_t *data, size_t len)
 			LOG_WRN("TX queue full - packet dropped");
 			return -ENOMEM;
 		}
-		LOG_DBG("Packet queued (%d/%d)", tx_queue_count, TX_QUEUE_SIZE);
 		return 0;
 	}
 	
@@ -229,6 +310,9 @@ int main(void)
 	int ret;
 	bool rx_enabled = false;
 
+	/* Inicializar semáforo */
+	k_sem_init(&rx_data_sem, 0, 1);
+
 	LOG_INF("UART Interrupt-Driven - FRDM-KL25Z");
 	LOG_INF("====================================");
 
@@ -245,8 +329,7 @@ int main(void)
 		return -1;
 	}
 
-	LOG_INF("UART initialized successfully!");
-	LOG_INF("");
+	LOG_INF("UART initialized successfully!\n");
 
 	/* Loop principal */
 	while (1) {
@@ -256,36 +339,63 @@ int main(void)
 		/* Gerar número aleatório de pacotes (1 a 4) */
 		num_packets = (sys_rand32_get() % LOOP_ITER_MAX_TX) + 1;
 		
-		LOG_INF("Loop %d: Sending %d packets", loop_counter, num_packets);
+		/* Calcular tamanho aproximado do pacote */
+		msg_len = snprintf(message, sizeof(message),
+				   "Loop %d: Packet: %d\r\n", loop_counter, 0);
+		
+		LOG_INF("Loop %d:", loop_counter);
+		LOG_INF("Sending %d packets (packet size: %d)", num_packets, msg_len);
 
 		/* Criar e enviar pacotes */
 		for (int i = 0; i < num_packets; i++) {
 			msg_len = snprintf(message, sizeof(message),
-					   "Loop %d: Packet: %d\r\n",
-					   loop_counter, i);
+					   "Packet: %d\r\n", i);
 			
 			if (msg_len > 0) {
 				ret = uart_send_packet((uint8_t *)message, msg_len);
 				if (ret != 0) {
 					LOG_ERR("Failed to send packet %d", i);
+				} else {
+					LOG_INF("Packet: %d", i);
 				}
 			}
 			
 			/* Pequeno delay entre pacotes */
-			k_sleep(K_MSEC(50));
+			k_sleep(K_MSEC(100));
 		}
+		
+		printk("\n");
 
-		/* Toggle RX - demonstrar controle da UART */
-		if (rx_enabled) {
-			uart_irq_rx_disable(uart_dev);
-			LOG_INF("RX disabled");
-		} else {
-			rx_buffer_idx = 0;
-			rx_pos = 0;
-			uart_irq_rx_enable(uart_dev);
-			LOG_INF("RX enabled");
+		/* Toggle RX a cada 2 loops (10 segundos) para dar tempo de testar */
+		if (loop_counter % 2 == 0) {
+			if (rx_enabled) {
+				uart_irq_rx_disable(uart_dev);
+				LOG_INF("RX is now disabled\n");
+				rx_enabled = false;
+			} else {
+				/* Limpar buffers antes de habilitar */
+				k_spinlock_key_t key = k_spin_lock(&rx_lock);
+				rx_write_idx = 0;
+				rx_pos = 0;
+				rx_ready_packet.ready = false;
+				k_spin_unlock(&rx_lock, key);
+				
+				/* Flush hardware FIFO para remover lixo */
+				uint8_t dummy;
+				while (uart_fifo_read(uart_dev, &dummy, 1) > 0) {
+					/* Descartar bytes antigos */
+				}
+				
+				/* Habilitar RX IRQ */
+				uart_irq_rx_enable(uart_dev);
+				
+				/* Pequeno delay para estabilizar */
+				k_sleep(K_MSEC(50));
+				
+				LOG_INF("RX is now enabled (ready to receive)\n");
+				rx_enabled = true;
+			}
 		}
-		rx_enabled = !rx_enabled;
 
 		loop_counter++;
 	}
