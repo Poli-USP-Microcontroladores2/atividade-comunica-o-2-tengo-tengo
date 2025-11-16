@@ -52,22 +52,22 @@ Uma função envia os dados de volta pela UART, caractere por caractere. A funç
 #### CT1 – Eco Básico
 
 * **Entrada:** Usuário digita uma mensagem no terminal do VS Code (ex: "oi").
-* **Saída esperada:** Mesma mensagem digitada.
-* **Critério de Aceitação:** Mensagem exibida exatamente como digitada, incluindo letras maiúsculas, minúsculas e caracteres especiais.
+* **Saída esperada:** Echo bot: Mesma mensagem digitada.
+* **Critério de Aceitação:** Mensagem exibida exatamente como digitada,  ou seja, ocorre inclusive uma distinção entre letras maiúsculas e minúsculas além do reconhecimento de caracteres especiais, como espaços e acentos.
 
 #### CT2 – Linha Vazia
 
 * **Entrada:** Usuário envia um comando vazio.
 * **Saída esperada:** Mensagem vazia.
-* **Critério de Aceitação:** O sistema aceita comandos em branco sem falhas.
+* **Critério de Aceitação:** O sistema funciona perfeitamente, entretanto acontece um fenômeno interessante, quando o usuário envia a mensagem a primeira vez, o Echo bot não manda nada, provavelmente, porque entende o envio como um erro, quando a mensagem vazia é enviada a segunda vez retorna Echo Bot:
 
 #### CT3 – Linha Longa
 
 * **Entrada:** Sequência de cerca de 100 caracteres.
-* **Saída esperada:** Apenas os primeiros 31 caracteres (o último byte é `\0`).
+* **Saída esperada:** Apenas os primeiros 31 caracteres (o último byte é `\r`).
 * **Critério de Aceitação:** O Echo Bot imprime apenas o número de caracteres permitido pela memória configurada.
 
-> **Observação:** O tamanho máximo da mensagem depende da memória alocada, que tem limite definido pelo `proj.config`.
+> **Observação:** O tamanho máximo da mensagem depende do define MSG size no início do código, que iniciamos como 32, mas pode ser altera. Entretanto, ele tem um limite que é definido no `proj.config` e um limite do Hardware (FRDM Kl 25z), por exemplo na nossa, prj.conf ficou definido 2048, entretanto o código/hardware só suporta até 512 carcteres.
 
 ### 3.3 Implementação
 
@@ -77,7 +77,8 @@ Uma função envia os dados de volta pela UART, caractere por caractere. A funç
   * `main.c`: modificação da define da UART (`zephyr_console`), substituição de `return 0` por `return -1`, ajustes nos `printk` e na interface do usuário.
 
 * **Justificativa:**
-  As alterações garantem funcionamento no VS Code, aumento da memória da UART, maior confiabilidade (`zephyr_console`) e melhor compreensão da interface de usuário.
+  As alterações garantem funcionamento compatível com o VS Code, aumento da memória da UART, maior confiabilidade (`zephyr_console`) e melhor compreensão da interface de usuário, este principalmente na divisão entre o que é o retorna da palavra e o que é o código hexadecimal da mensagem.
+  
 
 ### 3.4 Evidências de Funcionamento
 
@@ -177,7 +178,7 @@ Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 * **O que deu certo:** No Echo Bot, tudo funcionou bem. O principal problema foi o tamanho da mensagem, facilmente resolvido ajustando a memória disponível.
 * **Desafios enfrentados:**
 
-```
+```Enfrentamos a maior parte das dificuldades no código do Async Api, principalmente na parte de configuração da prj.conf, uma vez que, primeiro tivemos dificuldades para implementar por Api, o que fez com que a gente precisa-se adaptar para Interrupted Driven. Além disso, precisamos adicionar bastante coisa no prj.conf para que o código feito com IA podesse ser compatível com o VS CODE. Esse processo exigiu algumas horas e um pouco de empirismo e suporte da IA.
 
 ```
 
