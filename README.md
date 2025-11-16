@@ -69,6 +69,7 @@ Uma função envia os dados de volta pela UART, caractere por caractere. A funç
 
 > **Observação:** O tamanho máximo da mensagem depende do define MSG size no início do código, que iniciamos como 32, mas pode ser altera. Entretanto, ele tem um limite que é definido no `proj.config` e um limite do Hardware (FRDM Kl 25z), por exemplo na nossa, prj.conf ficou definido 2048, entretanto o código/hardware só suporta até 512 carcteres.
 
+ Obs: Esses casos estão ilustrados no evidences dentro de docs da branch echo-bot
 ### 3.3 Implementação
 
 * **Arquivos modificados:**
