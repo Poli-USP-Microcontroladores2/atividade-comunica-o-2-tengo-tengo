@@ -142,33 +142,17 @@ O código envia e recebe pacotes de forma assíncrona:
 
 ### 4.3 Implementação
 
-* **Arquivos modificados:**
+* **Arquivos modificados:  **
 * **Justificativa das alterações:**
 
 ### 4.4 Evidências de Funcionamento
 
-Salvar em: `docs/evidence/async_api/`
+Salvo em: `docs/evidence/async_api/`
 
-Exemplo:
-
-```
-Loop 0:
-Sending 3 packets (packet size: 5)
-Packet: 0
-Packet: 1
-Packet: 2
-```
-
-```
-RX is now enabled
-UART callback: RX_RDY
-Data (HEX): 48 65 6C 6C 6F
-Data (ASCII): Hello
-```
 
 ### 4.5 Diagramas de Sequência D2
 
-Adicionar diagramas completos e código-base em: `docs/sequence-diagrams/`
+salvo em: `docs/sequence-diagrams/`
 
 Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 
@@ -177,6 +161,8 @@ Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 ## 5. Conclusões da Dupla
 
 * **O que deu certo:** No Echo Bot, tudo funcionou bem. O principal problema foi o tamanho da mensagem, facilmente resolvido ajustando a memória disponível.
+
+  
 * **Desafios enfrentados:**
 
 ```Enfrentamos a maior parte das dificuldades no código do Async Api, principalmente na parte de configuração da prj.conf, uma vez que, primeiro tivemos dificuldades para implementar por Api, o que fez com que a gente precisa-se adaptar para Interrupted Driven. Além disso, precisamos adicionar bastante coisa no prj.conf para que o código feito com IA podesse ser compatível com o VS CODE. Esse processo exigiu algumas horas e um pouco de empirismo e suporte da IA.
@@ -186,6 +172,3 @@ Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 ```
 
 ---
-
-Quer que eu faça isso?
-```
