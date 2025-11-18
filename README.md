@@ -165,7 +165,7 @@ Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
   
 * **Desafios enfrentados:**
 
-```Enfrentamos a maior parte das dificuldades no código do Async Api, principalmente na parte de configuração da prj.conf, uma vez que, primeiro tivemos dificuldades para implementar por Api, o que fez com que a gente precisa-se adaptar para Interrupted Driven. Além disso, precisamos adicionar bastante coisa no prj.conf para que o código feito com IA podesse ser compatível com o VS CODE. Esse processo exigiu algumas horas e um pouco de empirismo e suporte da IA.
+Enfrentamos a maior parte das dificuldades no código do Async Api, principalmente na parte de configuração da prj.conf, uma vez que, primeiro tivemos dificuldades para implementar por Api, o que fez com que a gente precisa-se adaptar para Interrupted Driven. Além disso, precisamos adicionar bastante coisa no prj.conf para que o código feito com IA podesse ser compatível com o VS CODE. Esse processo exigiu algumas horas e um pouco de empirismo e suporte da IA.
 
 ```
 
