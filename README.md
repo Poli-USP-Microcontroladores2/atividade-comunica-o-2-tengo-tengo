@@ -142,8 +142,11 @@ O código envia e recebe pacotes de forma assíncrona:
 
 ### 4.3 Implementação
 
-* **Arquivos modificados:  **
+* **Arquivos modificados:** Main e prjconfig 
 * **Justificativa das alterações:**
+   prjconfig: fizemos um interrupt driven pois a frdm não reconheceu o outro método do async api, adicionamos o log para debug(não é essencial, mas ajuda no entendimento) e criamos três stack_size, todos de 2048. O primeiro para definir tamanho da mensagem enviada, o segundo para definir rotina de interrupção e o terceiro para definir o tamanho da fila de trabalho. Por fim, utilizamos geradores aleatórios( entropy generator e o test random generator).
+
+  Main: adaptamos a interface dela, separamos as mensagens para uma delas printar apenas a mensagem enviada e outro apenas para printar a palavra em ASCII. Também adaptamos alguns nomes de funções para funcionar com a frdm(pois o código havia sido feito para outro microncontrolador). A principal mudança foi em questão do modelo async, onde, com ajuda de ia, utilizamos um interrupt driven para realizar o async.
 
 ### 4.4 Evidências de Funcionamento
 
@@ -162,10 +165,12 @@ Referência: [D2 Sequence Diagrams](https://d2lang.com/tour/sequence-diagrams/)
 
 * **O que deu certo:** No Echo Bot, tudo funcionou bem. O principal problema foi o tamanho da mensagem, facilmente resolvido ajustando a memória disponível.
 
+já no async, apesar da frdm não reconhecer bem o código, no fim funcionou perfeitamente, enviando uma mensagem, escrevendo ela no monitor e encrevendo em ASCII.
+
   
 * **Desafios enfrentados:**
 
-Enfrentamos a maior parte das dificuldades no código do Async Api, principalmente na parte de configuração da prj.conf, uma vez que, primeiro tivemos dificuldades para implementar por Api, o que fez com que a gente precisa-se adaptar para Interrupted Driven. Além disso, precisamos adicionar bastante coisa no prj.conf para que o código feito com IA podesse ser compatível com o VS CODE. Esse processo exigiu algumas horas e um pouco de empirismo e suporte da IA.
+Enfrentamos a maior parte das dificuldades no código do Async Api, principalmente na parte de configuração da prj.conf, uma vez que, primeiro tivemos dificuldades para implementar por Api, o que fez com que a gente precisa-se adaptar para Interrupted Driven. Além disso, precisamos adicionar bastante coisa no prj.conf para que o código feito com IA podesse ser compatível com o VS CODE. Esse processo exigiu algumas horas e um pouco de empirismo e suporte da IA. Outro desafio foi em questão dos diagramas D2, onde por ser algo relativamente novo foi dificil entender seu funcionamento.
 
 ```
 
